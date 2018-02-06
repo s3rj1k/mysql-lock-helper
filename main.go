@@ -259,6 +259,11 @@ func main() {
 
 	flag.Parse()
 
+	if *unlockPtr && *lockPtr {
+		fmt.Printf("Use \"%s -h\" to see all options\n", os.Args[0])
+		os.Exit(1)
+	}
+
 	if *lockPtr {
 
 		if *forcePtr {
@@ -286,6 +291,8 @@ func main() {
 		if err != nil {
 			log.Fatalln(err.Error())
 		}
+
+		os.Exit(0)
 	}
 
 	if *unlockPtr {
@@ -293,6 +300,8 @@ func main() {
 		if err != nil {
 			log.Fatalln(err.Error())
 		}
+
+		os.Exit(0)
 	}
 
 	if !*unlockPtr && !*lockPtr {
