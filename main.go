@@ -150,9 +150,11 @@ func lockMyISAMTables(dsn string, tables []string, socket string) error {
 	}()
 
 	defer func() {
-		err := os.Remove(socket)
-		if err != nil {
-			log.Printf("failed to defer: %s\n", err.Error())
+		if _, err := os.Stat(socket); err == nil {
+			err := os.Remove(socket)
+			if err != nil {
+				log.Printf("failed to defer: %s\n", err.Error())
+			}
 		}
 	}()
 
@@ -186,9 +188,7 @@ func unLockMyISAMTables(socket string) error {
 
 	var err error
 
-	laddr := net.UnixAddr{Name: socket, Net: "unix"}
-
-	c, err := net.DialUnix("unix", &laddr, &net.UnixAddr{Name: socket, Net: "unix"})
+	c, err := net.DialUnix("unix", nil, &net.UnixAddr{Name: socket, Net: "unix"})
 	if err != nil {
 		return err
 	}
@@ -204,7 +204,7 @@ func unLockMyISAMTables(socket string) error {
 		time.Sleep(50 * time.Millisecond)
 		_, err = c.Write([]byte("UNLOCK_MYISAM_TABLES\n"))
 		if err != nil {
-			return err
+			break
 		}
 	}
 
@@ -249,15 +249,20 @@ func main() {
 	debianMysqlConfigPath := flag.String("mysql-config-path", "/etc/mysql/debian.cnf", "path to MySQL configuration file")
 
 	lockPtr := flag.Bool("lock-tables", false, "issue lock to all MyISAM tables")
+	forcePtr := flag.Bool("force", false, "removes unix socket before locking MyISAM tables")
 	unlockPtr := flag.Bool("unlock-tables", false, "issue unlock to all tables")
 
 	flag.Parse()
 
 	if *lockPtr {
 
-		err := os.Remove(*unixSocketPath)
-		if err != nil {
-			log.Fatalln(err.Error())
+		if *forcePtr {
+			if _, err := os.Stat(*unixSocketPath); err == nil {
+				err := os.Remove(*unixSocketPath)
+				if err != nil {
+					log.Fatalln(err.Error())
+				}
+			}
 		}
 
 		cfgMap, err := readDebianMySQLConfig(*debianMysqlConfigPath)
@@ -283,13 +288,6 @@ func main() {
 		if err != nil {
 			log.Fatalln(err.Error())
 		}
-
-		defer func() {
-			err := os.Remove(*unixSocketPath)
-			if err != nil {
-				log.Printf("failed to defer: %s\n", err.Error())
-			}
-		}()
 	}
 
 	if !*unlockPtr && !*lockPtr {
