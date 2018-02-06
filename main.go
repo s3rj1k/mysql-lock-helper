@@ -142,6 +142,20 @@ func lockMyISAMTables(dsn string, tables []string, socket string) error {
 		return err
 	}
 
+	defer func() {
+		err := db.Close()
+		if err != nil {
+			log.Printf("failed to defer: %s\n", err.Error())
+		}
+	}()
+
+	defer func() {
+		err := os.Remove(socket)
+		if err != nil {
+			log.Printf("failed to defer: %s\n", err.Error())
+		}
+	}()
+
 	for {
 		time.Sleep(100 * time.Millisecond)
 		err = db.Ping()
@@ -164,20 +178,6 @@ func lockMyISAMTables(dsn string, tables []string, socket string) error {
 	if err != nil {
 		log.Println(err.Error())
 	}
-
-	defer func() {
-		err := db.Close()
-		if err != nil {
-			log.Printf("failed to defer: %s\n", err.Error())
-		}
-	}()
-
-	defer func() {
-		err := os.Remove(socket)
-		if err != nil {
-			log.Printf("failed to defer: %s\n", err.Error())
-		}
-	}()
 
 	return nil
 }
@@ -254,6 +254,12 @@ func main() {
 	flag.Parse()
 
 	if *lockPtr {
+
+		err := os.Remove(*unixSocketPath)
+		if err != nil {
+			log.Fatalln(err.Error())
+		}
+
 		cfgMap, err := readDebianMySQLConfig(*debianMysqlConfigPath)
 		if err != nil {
 			log.Fatalln(err.Error())
