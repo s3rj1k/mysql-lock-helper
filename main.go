@@ -291,7 +291,7 @@ func main() {
 	}
 
 	if !*unlockPtr && !*lockPtr {
-		fmt.Printf("Use %s -h to see all options\n", os.Args[0])
+		fmt.Printf("Use \"%s -h\" to see all options\n", os.Args[0])
 		os.Exit(0)
 	}
 }
