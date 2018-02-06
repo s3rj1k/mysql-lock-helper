@@ -129,6 +129,11 @@ func lockMyISAMTables(dsn string, tables []string, socket string) error {
 		return err
 	}
 
+	_, err = db.Exec("FLUSH TABLES WITH READ LOCK;")
+	if err != nil {
+		return err
+	}
+
 	// to see locks on DB.TABLES issue this SQL: SHOW OPEN TABLES WHERE In_use > 0;
 	sql := fmt.Sprintf("FLUSH TABLES %s WITH READ LOCK;", strings.Join(tables, ", "))
 
