@@ -253,7 +253,7 @@ func main() {
 	unixSocketPath := flag.String("unix-socket-path", "/var/run/mysqld/backup.sock", "unix socket path to use for communication")
 	debianMysqlConfigPath := flag.String("mysql-config-path", "/etc/mysql/debian.cnf", "path to MySQL configuration file")
 
-	lockPtr := flag.Bool("lock-tables", false, "issue lock to all MyISAM tables")
+	lockPtr := flag.Bool("lock-tables", false, "issue lock to all MyISAM tables (to daemonize: \"nohup CMD &>/dev/null &\")")
 	forcePtr := flag.Bool("force", false, "removes unix socket before locking MyISAM tables")
 	unlockPtr := flag.Bool("unlock-tables", false, "issue unlock to all tables")
 
